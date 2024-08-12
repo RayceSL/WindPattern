@@ -2,6 +2,7 @@
 
 var lat = 60;
 var long = -150;
+var wind;
 
 class Map {
     constructor(_width, _height){
@@ -13,7 +14,8 @@ class Map {
         for(let i = 0; i < this.height; i++){
             let row = [];
             for(let j = 0; j < this.width; j++){
-                row.push(getPoints(lat + i, long + j));
+                getPoints(lat + i, long + j)
+                row.push(wind);
             }
             this.map.push(row);
         }
@@ -29,15 +31,18 @@ async function getPoints(_lat, _long){
     try{
         const RESPONSE = await fetch(`https://api.weather.gov/points/${_lat},${_long}`);
         if(!RESPONSE.ok){
-            throw new Error();
+            throw new Error("Position invalid");
         }
         const DATA = await RESPONSE.json()        
         var x = DATA.properties.gridX;
         var y = DATA.properties.gridY;
         var office = DATA.properties.gridId;
-        return getWind(office, x, y);
+        getWind(office, x, y);
+        return wind;
     }
     catch(error){
+        wind = "X";
+        return wind;
         console.log(error);
     }
 }
@@ -52,41 +57,23 @@ async function getWind(_office, _x, _y) {
         const WIND = DATA.properties.periods[0].windDirection;
         switch (WIND) {
             case "N":
-                // console.log("↑");
-                // break;
-                return "↑";
+                wind = "↑";
             case "NE":
-                // console.log("↗");
-                // break;
-                return "↗";
+                wind = "↗";
             case "E":
-                // console.log("→");
-                // break;
-                return "→";
+                wind = "→";
             case "SE":
-                // console.log("↘");
-                // break;
-                return "↘";
+                wind = "↘";
             case "S":
-                // console.log("↓");
-                // break;
-                return "↓";
+                wind = "↓";
             case "SW":
-                // console.log("↙");
-                // break;
-                return "↙";
+                wind = "↙";
             case "W":
-                // console.log("←");
-                // break;
-                return "←";
+                wind = "←";
             case "NW":
-                // console.log("↖");
-                // break;
-                return "↖";
+                wind = "↖";
             default:
-                // console.log("?");
-                // break;
-                return "?";
+                wind = "?";
         }
     }
     catch(error) {
