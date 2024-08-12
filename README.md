@@ -1,0 +1,2 @@
+- Install the chalk package `npm i chalk`
+- Set _type_ to "module" in package.json

@@ -1,0 +1,1 @@
+import * as chalk from chalk;
