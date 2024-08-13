@@ -1,28 +1,35 @@
-// import * as chalk from "chalk";
+import * as chalk from "chalk";
 
-var lat = 60;
-var long = -150;
-var wind;
+// SpitWSpots's Coords
+// var lat = 59.646;
+// var long = -151.538;
+
+// Alaska's Coords
+var lat = 71.793;
+var long = -170.318;
+
+// World's Coords
+// var lat = 90;
+// var long = -180;
+
 
 class Map {
-    constructor(_width, _height){
+    constructor(_width, _height, _zoom, _lat, _long){
         this.width = _width;
         this.height = _height;
-        this.map = [];
+        this.zoom = _zoom;
+        this.lat = _lat;
+        this.long = _long;
     }
-    fill(){
+    async fill(){
+        console.log(`Wind patterns starting at (${(this.lat - this.height * this.zoom) + 1}, ${this.long}) to (${this.lat}, ${(this.long + this.width * this.zoom) + 1})\nYou\n↓`)
         for(let i = 0; i < this.height; i++){
             let row = [];
             for(let j = 0; j < this.width; j++){
-                getPoints(lat + i, long + j)
-                row.push(wind);
+                let cell = await getPoints(this.lat - i * this.zoom, this.long + j * this.zoom);
+                row.push(cell);
             }
-            this.map.push(row);
-        }
-    }
-    log() {
-        for (let i = 0; i < this.map.length; i++) {
-            console.log(this.map[i].join(""));
+            console.log(row.join(""));
         }
     }
 }
@@ -31,19 +38,36 @@ async function getPoints(_lat, _long){
     try{
         const RESPONSE = await fetch(`https://api.weather.gov/points/${_lat},${_long}`);
         if(!RESPONSE.ok){
-            throw new Error("Position invalid");
+            throw new Error();
         }
         const DATA = await RESPONSE.json()        
         var x = DATA.properties.gridX;
         var y = DATA.properties.gridY;
         var office = DATA.properties.gridId;
-        getWind(office, x, y);
-        return wind;
+        var arrow = await getWind(office, x, y);
+        switch(arrow){
+            case "N":
+                return "↑";
+            case "NE":
+                return "↗";
+            case "E":
+                return "→";
+            case "SE":
+                return "↘";
+            case "S":
+                return "↓";
+            case "SW":
+                return "↙";
+            case "W":
+                return "←";
+            case "NW":
+                return "↖";
+            default:
+                return "_";
+        }
     }
     catch(error){
-        wind = "X";
-        return wind;
-        console.log(error);
+        return "_";
     }
 }
 
@@ -54,36 +78,13 @@ async function getWind(_office, _x, _y) {
             throw new Error();
         }
         const DATA = await RESPONSE.json();
-        const WIND = DATA.properties.periods[0].windDirection;
-        switch (WIND) {
-            case "N":
-                wind = "↑";
-            case "NE":
-                wind = "↗";
-            case "E":
-                wind = "→";
-            case "SE":
-                wind = "↘";
-            case "S":
-                wind = "↓";
-            case "SW":
-                wind = "↙";
-            case "W":
-                wind = "←";
-            case "NW":
-                wind = "↖";
-            default:
-                wind = "?";
-        }
+        const DIR = DATA.properties.periods[0].windDirection;
+        return DIR;
     }
     catch(error) {
-        console.log(error);
+        return;
     }
 }
 
-// getPoints(lat, long);
-
-const MAP_A = new Map(5,5);
-
-MAP_A.fill();
-MAP_A.log();
+var alaska = new Map(42, 20, 1, lat, long);
+alaska.fill();
